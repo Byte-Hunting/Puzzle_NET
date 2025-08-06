@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import faiss
 
-from embeddings.visual_model import DummyVisualModel
+from embeddings.visual_model import SigLIPVisualEncoder
 from embeddings.chessbert_model import ChessBERTEmbedder
 from embeddings.theme_encoder import ThemeEncoder
 from embeddings.fusion import fuse_embeddings
@@ -14,8 +14,8 @@ SAVE_DIR = "db"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # Load models
-visual_encoder = DummyVisualModel()
-chess_encoder = ChessBERTEmbedder("your/chessbert-model")  # Replace with actual ChessBERT path
+visual_encoder = SigLIPVisualEncoder()
+chess_encoder = ChessBERTEmbedder()
 theme_encoder = ThemeEncoder()
 
 dim_total = visual_encoder.dim + 768 + theme_encoder.model.get_sentence_embedding_dimension()
