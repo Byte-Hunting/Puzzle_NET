@@ -3,3 +3,11 @@ numpy
 tqdm
 python-chess
 faiss-cpu
+torch
+transformers
+sentence-transformers
+pillow
+pandas
+faiss-cpu
+cairosvg
+pyarrow
