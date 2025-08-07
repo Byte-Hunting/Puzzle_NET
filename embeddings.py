@@ -15,8 +15,8 @@ class SigLIPVisualEncoder:
         self.processor = SiglipProcessor.from_pretrained(model_name)
         self.model = SiglipModel.from_pretrained(model_name)
         self.model.eval()
-        self.device = 'cpu'
-        # self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # self.device = 'cpu'
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         self.dim = self.model.vision_model.config.hidden_size
 
@@ -49,7 +49,7 @@ class ChessBERTEmbedder:
 
 class ThemeEncoder:
     def __init__(self):
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        self.model = SentenceTransformer("all-MiniLM-L6-v2", device="cuda" if torch.cuda.is_available() else "cpu")
 
     def encode(self, themes):
         theme_str = " ".join(themes)

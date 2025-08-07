@@ -2,6 +2,7 @@ import os
 import json
 import pandas as pd
 import numpy as np
+import torch
 
 from embeddings import SigLIPVisualEncoder, ChessBERTEmbedder, ThemeEncoder, fuse_embeddings
 from utils.fen_to_image import fen_to_image
@@ -21,6 +22,12 @@ dim_total = visual_encoder.dim + 768 + theme_encoder.model.get_sentence_embeddin
 # Load puzzles in chunks
 df = pd.read_parquet("./data/puzzles_filtered.parquet")
 
+if isinstance(df['moves'].iloc[0], np.ndarray):
+    df['moves'] = df['moves'].apply(list)
+    print("yes")
+
+print(torch.cuda.is_available())
+
 BATCH_SIZE = 10000  # Adjust this if you run into memory issues
 vectors_path = os.path.join(SAVE_DIR, "vectors.npy")
 metadata_path = os.path.join(SAVE_DIR, "metadata.jsonl")
@@ -35,7 +42,7 @@ all_vectors = []
 
 for idx, row in df.iterrows():
     fen = row["fen"]
-    moves = row["moves"].split() if isinstance(row["moves"], str) else []
+    moves = row["moves"].split() if isinstance(row["moves"], str) else row["moves"]
     themes = row["themes"].split(",") if isinstance(row["themes"], str) else []
     pid = row["id"]
 
