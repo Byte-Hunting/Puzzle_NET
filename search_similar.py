@@ -3,7 +3,7 @@ import json
 import numpy as np
 import faiss
 
-from embeddings import SigLIPVisualEncoder, ChessBERTEmbedder, ThemeEncoder, fuse_embeddings
+from embeddings import SigLIPVisualEncoder, ThemeEncoder, fuse_embeddings
 from utils.fen_to_image import fen_to_image
 
 SAVE_DIR = "db"
@@ -15,16 +15,14 @@ with open(os.path.join(SAVE_DIR, "metadata.json")) as f:
 
 # Load encoders
 visual_encoder = SigLIPVisualEncoder()
-chess_encoder = ChessBERTEmbedder()
 theme_encoder = ThemeEncoder()
 
 def search_similar(fen, moves, themes, top_k=5):
     image = fen_to_image(fen)
     visual_emb = visual_encoder.encode_image(image)
-    chess_emb = chess_encoder.encode(" ".join(moves))
     theme_emb = theme_encoder.encode(themes)
 
-    query_vector = fuse_embeddings(visual_emb, chess_emb, theme_emb).astype('float32')
+    query_vector = fuse_embeddings(visual_emb, theme_emb).astype('float32')
     D, I = index.search(np.array([query_vector]), k=top_k)
 
     results = []

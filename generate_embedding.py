@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import torch
 
-from embeddings import SigLIPVisualEncoder, ChessBERTEmbedder, ThemeEncoder, fuse_embeddings
+from embeddings import SigLIPVisualEncoder, ThemeEncoder, fuse_embeddings
 from utils.fen_to_image import fen_to_image
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -14,17 +14,12 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 
 # Load models
 visual_encoder = SigLIPVisualEncoder()
-chess_encoder = ChessBERTEmbedder()
 theme_encoder = ThemeEncoder()
 
 dim_total = visual_encoder.dim + 768 + theme_encoder.model.get_sentence_embedding_dimension()
 
 # Load puzzles in chunks
 df = pd.read_parquet("./data/puzzles_filtered.parquet")
-
-if isinstance(df['moves'].iloc[0], np.ndarray):
-    df['moves'] = df['moves'].apply(list)
-    print("yes")
 
 print(torch.cuda.is_available())
 
@@ -42,17 +37,16 @@ all_vectors = []
 
 for idx, row in df.iterrows():
     fen = row["fen"]
-    moves = row["moves"].split() if isinstance(row["moves"], str) else row["moves"]
-    themes = row["themes"].split(",") if isinstance(row["themes"], str) else []
+    moves = row["moves"]
+    themes = row["themes"]
     pid = row["id"]
 
     try:
         image = fen_to_image(fen)
         visual_emb = visual_encoder.encode_image(image)
-        chess_emb = chess_encoder.encode(" ".join(moves))
         theme_emb = theme_encoder.encode(themes)
 
-        final_vector = fuse_embeddings(visual_emb, chess_emb, theme_emb)
+        final_vector = fuse_embeddings(visual_emb, theme_emb)
         all_vectors.append(final_vector)
 
         with open(metadata_path, "a") as f:
