@@ -1,0 +1,73 @@
+/* src/styles.css */
+:root {
+    --card-w: 240px;
+  }
+  
+  /* Grid container: exact 3 columns centered */
+  .puzzles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--card-w));
+    gap: 16px;
+    justify-content: center;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Card styling */
+  .puzzle-card {
+    width: var(--card-w);
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e6e6e6;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* mini-board container */
+  .mini-board {
+    width: 100%;
+    height: var(--card-w);
+    background: #f8f8f8;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* force mini boards to be below modal */
+  .mini-board .cg-wrap,
+  .mini-board .cg-board {
+    z-index: 1;
+  }
+  
+  /* modal overlay and container */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+  
+  .modal-container {
+    z-index: 10001;
+    background: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    max-width: 920px;
+    width: 92%;
+    display: grid;
+    grid-template-columns: minmax(320px, 480px) 1fr;
+    gap: 16px;
+    box-sizing: border-box;
+  }
+  
+  /* make the large puzzle board sit above everything */
+  .puzzle-large .cg-wrap,
+  .puzzle-large .cg-board {
+    z-index: 10002 !important;
+  }
+  
