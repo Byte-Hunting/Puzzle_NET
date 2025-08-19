@@ -24,11 +24,17 @@ export default function PuzzleModal({ puzzle, onClose, onSolvedNext }) {
   // Generate allowed move for current index
   const getDestsForPuzzle = () => {
     const dests = new Map();
-    if (!puzzle?.moves?.[moveIndex]) return dests;
-    const move = puzzle.moves[moveIndex];
-    dests.set(move.slice(0, 2), [move.slice(2, 4)]);
+    if (!chessRef.current) return dests;
+    const moves = chessRef.current.moves({ verbose: true });
+    moves.forEach(m => {
+      const from = m.from;
+      const to = m.to;
+      if (!dests.has(from)) dests.set(from, []);
+      dests.get(from).push(to);
+    });
     return dests;
   };
+
 
   // Initialize / update Chessground
   useEffect(() => {
@@ -98,15 +104,28 @@ export default function PuzzleModal({ puzzle, onClose, onSolvedNext }) {
         onSolvedNext();
       }
     } else {
+      // Wrong move: undo + feedback
       setMsg("❌ Try again");
-      chess.undo();
+      chess.undo(); // take back the bad move
+    
       const turnColor = chess.turn() === "w" ? "white" : "black";
+    
       cgRef.current.set({
         fen: chess.fen(),
-        movableColor: turnColor,
-        dests: getDestsForPuzzle(),
+        turnColor,
+        movable: {
+          free: false,
+          color: turnColor,
+          dests: getDestsForPuzzle(),   // ✅ recalc legal moves
+          showDests: true,
+          events: { after: handleMove },
+        },
+        highlight: {
+          lastMove: [from, to], // optional: show wrong attempt
+        },
       });
     }
+    
 
     return true;
   };
