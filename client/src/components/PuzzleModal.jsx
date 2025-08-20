@@ -21,12 +21,11 @@ export default function PuzzleModal({ puzzle, onClose, onSolvedNext }) {
     setMsg("");
   }, [puzzle]);
 
-  // Generate allowed move for current index
   const getDestsForPuzzle = () => {
     const dests = new Map();
     if (!chessRef.current) return dests;
     const moves = chessRef.current.moves({ verbose: true });
-    moves.forEach(m => {
+    moves.forEach((m) => {
       const from = m.from;
       const to = m.to;
       if (!dests.has(from)) dests.set(from, []);
@@ -34,7 +33,6 @@ export default function PuzzleModal({ puzzle, onClose, onSolvedNext }) {
     });
     return dests;
   };
-
 
   // Initialize / update Chessground
   useEffect(() => {
@@ -106,26 +104,23 @@ export default function PuzzleModal({ puzzle, onClose, onSolvedNext }) {
     } else {
       // Wrong move: undo + feedback
       setMsg("❌ Try again");
-      chess.undo(); // take back the bad move
-    
+      chess.undo();
+
       const turnColor = chess.turn() === "w" ? "white" : "black";
-    
+
       cgRef.current.set({
         fen: chess.fen(),
         turnColor,
         movable: {
           free: false,
           color: turnColor,
-          dests: getDestsForPuzzle(),   // ✅ recalc legal moves
+          dests: getDestsForPuzzle(),
           showDests: true,
           events: { after: handleMove },
         },
-        highlight: {
-          lastMove: [from, to], // optional: show wrong attempt
-        },
+        highlight: { lastMove: [from, to] },
       });
     }
-    
 
     return true;
   };
@@ -156,7 +151,9 @@ export default function PuzzleModal({ puzzle, onClose, onSolvedNext }) {
       >
         <div ref={mount} style={{ width: "100%", aspectRatio: "1/1" }} />
         <div>
-          <h3>{puzzle.id} · {puzzle.rating}</h3>
+          <h3>
+            {puzzle.id} · {puzzle.rating}
+          </h3>
           <div>{(puzzle.themes || []).join(", ")}</div>
           <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
             <button onClick={onClose}>Close</button>
