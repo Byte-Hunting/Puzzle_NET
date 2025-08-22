@@ -17,7 +17,6 @@ import PuzzleModal from "./components/PuzzleModal";
 
 function Home() {
   const [puzzles, setPuzzles] = useState([]);
-  const [current, setCurrent] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,47 +35,16 @@ function Home() {
       themes: p.themes || [],
     };
     console.log("Opening puzzle:", normalized);
-    setCurrent(normalized);
-    prefetchSimilar(normalized.id, 15, 2100);
     navigate(`/puzzle/${normalized.id}`, { replace: true });
   };
 
   const openPuzzle = (p) => goToPuzzle(p);
 
-  const nextSimilar = async () => {
-    if (!current) return;
-    console.log("Fetching similar puzzles for:", current.id);
-    const { results } = await fetchSimilar(current.id, 15, 2100);
-    console.log("API returned:", results);
-    const next = results?.[0];
-    if (next) {
-      const normalized = {
-        id: next.puzzle_id || next.id,
-        fen: next.fen,
-        moves: next.moves || [],
-        rating: next.rating,
-        themes: next.themes || [],
-      };
-      console.log("👉 Switching to next similar puzzle:", normalized);
-      setCurrent(normalized);
-      prefetchSimilar(normalized.id, 15, 2100);
-    } else {
-      console.warn("No similar puzzles found for:", current.id);
-    }
-  };
-
   return (
     <div style={{ padding: 8 }}>
       <h2 style={{ textAlign: "center" }}>15 Diverse Puzzles (≤2100)</h2>
       <PuzzlesGrid puzzles={puzzles} onOpen={openPuzzle} />
-      <PuzzleModal
-        puzzle={current}
-        onClose={() => {
-          setCurrent(null);
-          navigate("/");
-        }}
-        onSolvedNext={nextSimilar}
-      />
+      
     </div>
   );
 }
@@ -84,6 +52,8 @@ function Home() {
 function PuzzleRouteWrapper() {
   const { id } = useParams();
   const [puzzle, setPuzzle] = useState(null);
+  const [index, setIndex] = useState(null);
+  const [similarList, setSimilarList] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,6 +63,12 @@ function PuzzleRouteWrapper() {
         if (puzzle) {
           console.log("Loaded puzzle:", puzzle);
           setPuzzle(puzzle);
+          const { results } = await fetchSimilar(puzzle.id, 15, 3000);
+          
+          if (results?.length > 0) {
+            setSimilarList(results);
+            setIndex(0); // start at first result
+          }
         }
       } catch (err) {
         console.error(err);
@@ -101,12 +77,11 @@ function PuzzleRouteWrapper() {
   }, [id]);
 
   const handleNextSimilar = async () => {
-    if (!puzzle) return;
-    console.log("Fetching similar puzzles for:", puzzle.id);
-    const { results } = await fetchSimilar(puzzle.id, 15, puzzle.rating || 2100);
-    console.log("API returned:", results);
-    if (results?.length > 0) {
-      const next = results[0];
+    if (!similarList.length) return;
+
+    const nextIndex = index + 1;
+    if (nextIndex < similarList.length) {
+      const next = similarList[nextIndex];
       const normalized = {
         id: next.puzzle_id || next.id,
         fen: next.fen,
@@ -114,10 +89,10 @@ function PuzzleRouteWrapper() {
         rating: next.rating,
         themes: next.themes || [],
       };
-      console.log("👉 Switching to next similar puzzle:", normalized);
       setPuzzle(normalized);
+      setIndex(nextIndex); // move pointer forward
     } else {
-      console.warn("No similar puzzles found for:", puzzle.id);
+      console.warn("No more similar puzzles available");
       navigate("/");
     }
   };
